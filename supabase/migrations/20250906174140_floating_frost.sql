@@ -54,14 +54,46 @@
     - Products manageable by super_admin and pharmtech
     - Sales accessible by all authenticated users
     - Sale items follow sales permissions
+
+  3. Sample Data
+    - Demo user accounts
+    - Sample products for testing
 */
+
+-- Drop existing objects if they exist (for clean migration)
+DROP POLICY IF EXISTS "Users can read own profile" ON profiles;
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+DROP POLICY IF EXISTS "Super admins can read all profiles" ON profiles;
+DROP POLICY IF EXISTS "Super admins can insert profiles" ON profiles;
+DROP POLICY IF EXISTS "Super admins can update all profiles" ON profiles;
+DROP POLICY IF EXISTS "Super admins can delete profiles" ON profiles;
+DROP POLICY IF EXISTS "All active users can read products" ON products;
+DROP POLICY IF EXISTS "Super admins and pharmtech can insert products" ON products;
+DROP POLICY IF EXISTS "Super admins and pharmtech can update products" ON products;
+DROP POLICY IF EXISTS "Super admins and pharmtech can delete products" ON products;
+DROP POLICY IF EXISTS "All active users can read sales" ON sales;
+DROP POLICY IF EXISTS "All active users can insert sales" ON sales;
+DROP POLICY IF EXISTS "All active users can read sale items" ON sale_items;
+DROP POLICY IF EXISTS "All active users can insert sale items" ON sale_items;
+
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
+DROP TRIGGER IF EXISTS update_products_updated_at ON products;
+DROP FUNCTION IF EXISTS update_updated_at_column();
+
+DROP TABLE IF EXISTS sale_items;
+DROP TABLE IF EXISTS sales;
+DROP TABLE IF EXISTS products;
+DROP TABLE IF EXISTS profiles;
+
+DROP TYPE IF EXISTS payment_method;
+DROP TYPE IF EXISTS user_role;
 
 -- Create custom types
 CREATE TYPE user_role AS ENUM ('super_admin', 'pharmtech', 'cashier');
 CREATE TYPE payment_method AS ENUM ('cash', 'mpesa', 'card', 'insurance');
 
 -- Profiles table (extends auth.users)
-CREATE TABLE IF NOT EXISTS profiles (
+CREATE TABLE profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   name text NOT NULL,
   phone text NOT NULL,
@@ -72,7 +104,7 @@ CREATE TABLE IF NOT EXISTS profiles (
 );
 
 -- Products table
-CREATE TABLE IF NOT EXISTS products (
+CREATE TABLE products (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name text NOT NULL,
   category text NOT NULL,
@@ -90,7 +122,7 @@ CREATE TABLE IF NOT EXISTS products (
 );
 
 -- Sales table
-CREATE TABLE IF NOT EXISTS sales (
+CREATE TABLE sales (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   receipt_number text UNIQUE NOT NULL,
   subtotal numeric(10,2) NOT NULL DEFAULT 0,
@@ -103,7 +135,7 @@ CREATE TABLE IF NOT EXISTS sales (
 );
 
 -- Sale items table
-CREATE TABLE IF NOT EXISTS sale_items (
+CREATE TABLE sale_items (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   sale_id uuid NOT NULL REFERENCES sales(id) ON DELETE CASCADE,
   product_id uuid NOT NULL REFERENCES products(id),
@@ -114,16 +146,16 @@ CREATE TABLE IF NOT EXISTS sale_items (
 );
 
 -- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role);
-CREATE INDEX IF NOT EXISTS idx_profiles_is_active ON profiles(is_active);
-CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
-CREATE INDEX IF NOT EXISTS idx_products_stock_level ON products(stock_level);
-CREATE INDEX IF NOT EXISTS idx_products_expiry_date ON products(expiry_date);
-CREATE INDEX IF NOT EXISTS idx_products_barcode ON products(barcode);
-CREATE INDEX IF NOT EXISTS idx_sales_staff_id ON sales(staff_id);
-CREATE INDEX IF NOT EXISTS idx_sales_created_at ON sales(created_at);
-CREATE INDEX IF NOT EXISTS idx_sale_items_sale_id ON sale_items(sale_id);
-CREATE INDEX IF NOT EXISTS idx_sale_items_product_id ON sale_items(product_id);
+CREATE INDEX idx_profiles_role ON profiles(role);
+CREATE INDEX idx_profiles_is_active ON profiles(is_active);
+CREATE INDEX idx_products_category ON products(category);
+CREATE INDEX idx_products_stock_level ON products(stock_level);
+CREATE INDEX idx_products_expiry_date ON products(expiry_date);
+CREATE INDEX idx_products_barcode ON products(barcode);
+CREATE INDEX idx_sales_staff_id ON sales(staff_id);
+CREATE INDEX idx_sales_created_at ON sales(created_at);
+CREATE INDEX idx_sale_items_sale_id ON sale_items(sale_id);
+CREATE INDEX idx_sale_items_product_id ON sale_items(product_id);
 
 -- Enable Row Level Security
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
@@ -256,10 +288,20 @@ CREATE TRIGGER update_products_updated_at
   BEFORE UPDATE ON products 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- Insert sample data
+-- Insert sample products
 INSERT INTO products (name, category, supplier, batch_number, expiry_date, cost_price, selling_price, stock_level, min_stock_level, barcode, requires_prescription) VALUES
 ('Panadol Extra', 'Pain Relief', 'GlaxoSmithKline', 'PE2024001', '2025-12-31', 120, 150, 250, 50, '1234567890123', false),
 ('Amoxicillin 500mg', 'Antibiotics', 'Cipla Kenya', 'AM2024002', '2024-06-30', 300, 350, 15, 25, '1234567890124', true),
 ('Vitamin C Tablets', 'Supplements', 'Cosmos Limited', 'VC2024003', '2026-08-15', 80, 120, 180, 30, '1234567890125', false),
 ('Cough Syrup', 'Cold & Flu', 'Shelys Pharmaceuticals', 'CS2024004', '2024-03-15', 150, 200, 45, 20, '1234567890126', false),
-('Aspirin 100mg', 'Pain Relief', 'Bayer', 'AS2024005', '2025-09-30', 90, 120, 300, 50, '1234567890127', false);
+('Aspirin 100mg', 'Pain Relief', 'Bayer', 'AS2024005', '2025-09-30', 90, 120, 300, 50, '1234567890127', false),
+('Ibuprofen 400mg', 'Pain Relief', 'Pfizer', 'IB2024006', '2025-11-15', 100, 130, 200, 40, '1234567890128', false),
+('Omeprazole 20mg', 'Digestive Health', 'AstraZeneca', 'OM2024007', '2025-07-20', 180, 220, 120, 25, '1234567890129', true),
+('Cetirizine 10mg', 'Allergies', 'UCB Pharma', 'CE2024008', '2025-10-10', 60, 90, 150, 30, '1234567890130', false),
+('Metformin 500mg', 'Diabetes', 'Teva', 'MF2024009', '2025-08-25', 200, 250, 100, 20, '1234567890131', true),
+('Loratadine 10mg', 'Allergies', 'Schering-Plough', 'LO2024010', '2025-09-05', 70, 100, 180, 35, '1234567890132', false),
+('Diclofenac Gel', 'Pain Relief', 'Novartis', 'DG2024011', '2025-06-30', 150, 200, 80, 15, '1234567890133', false),
+('Multivitamin Tablets', 'Supplements', 'Centrum', 'MV2024012', '2026-12-31', 250, 320, 90, 20, '1234567890134', false),
+('Hydrocortisone Cream', 'Skin Care', 'Johnson & Johnson', 'HC2024013', '2025-04-15', 120, 160, 60, 15, '1234567890135', false),
+('Salbutamol Inhaler', 'Respiratory', 'GSK', 'SA2024014', '2025-03-20', 400, 500, 40, 10, '1234567890136', true),
+('Paracetamol Syrup', 'Pain Relief', 'GSK', 'PS2024015', '2024-12-31', 80, 110, 120, 25, '1234567890137', false);
