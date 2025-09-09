@@ -35,7 +35,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUserProfile = async (supabaseUser: SupabaseUser) => {
     try {
       const { data: profile, error } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .select('*')
         .eq('id', supabaseUser.id)
         .single();
@@ -50,8 +50,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const user: User = {
           id: profile.id,
           email: supabaseUser.email || '',
-          phone: profile.phone,
-          name: profile.name,
+          phone: profile.phone || '',
+          name: profile.full_name,
           role: profile.role,
           isActive: profile.is_active,
           createdAt: profile.created_at

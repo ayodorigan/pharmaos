@@ -39,7 +39,7 @@ export const Reports: React.FC = () => {
         .from('sales')
         .select(`
           *,
-          profiles!sales_staff_id_fkey(name)
+          user_profiles!sales_cashier_id_fkey(full_name)
         `)
         .order('created_at', { ascending: false });
 
@@ -62,6 +62,7 @@ export const Reports: React.FC = () => {
           }
 
           return { ...sale, items: items || [], staff_name: sale.profiles?.name || 'Unknown' };
+          return { ...sale, items: items || [], staff_name: sale.user_profiles?.full_name || 'Unknown' };
         })
       );
 

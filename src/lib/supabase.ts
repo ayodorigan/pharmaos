@@ -13,10 +13,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 export type Database = {
   public: {
     Tables: {
-      profiles: {
+      user_profiles: {
         Row: {
           id: string
-          name: string
+          email: string
+          full_name: string
           phone: string
           role: 'super_admin' | 'pharmtech' | 'cashier'
           is_active: boolean
@@ -25,7 +26,8 @@ export type Database = {
         }
         Insert: {
           id: string
-          name: string
+          email: string
+          full_name: string
           phone: string
           role?: 'super_admin' | 'pharmtech' | 'cashier'
           is_active?: boolean
@@ -34,7 +36,8 @@ export type Database = {
         }
         Update: {
           id?: string
-          name?: string
+          email?: string
+          full_name?: string
           phone?: string
           role?: 'super_admin' | 'pharmtech' | 'cashier'
           is_active?: boolean
@@ -53,9 +56,9 @@ export type Database = {
           cost_price: number
           selling_price: number
           stock_level: number
-          min_stock_level: number
+          minimum_stock: number
           barcode: string | null
-          requires_prescription: boolean
+          prescription_required: boolean
           created_at: string
           updated_at: string
         }
@@ -69,9 +72,9 @@ export type Database = {
           cost_price: number
           selling_price: number
           stock_level: number
-          min_stock_level: number
+          minimum_stock: number
           barcode?: string | null
-          requires_prescription?: boolean
+          prescription_required?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -85,9 +88,9 @@ export type Database = {
           cost_price?: number
           selling_price?: number
           stock_level?: number
-          min_stock_level?: number
+          minimum_stock?: number
           barcode?: string | null
-          requires_prescription?: boolean
+          prescription_required?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -95,35 +98,35 @@ export type Database = {
       sales: {
         Row: {
           id: string
-          receipt_number: string
-          subtotal: number
-          tax: number
+          sale_number: string
+          cashier_id: string
+          customer_name: string | null
+          customer_phone: string | null
           total: number
           payment_method: 'cash' | 'mpesa' | 'card' | 'insurance'
-          mpesa_transaction_id: string | null
-          staff_id: string
+          payment_reference: string | null
           created_at: string
         }
         Insert: {
           id?: string
-          receipt_number: string
-          subtotal: number
-          tax: number
+          sale_number: string
+          cashier_id: string
+          customer_name?: string | null
+          customer_phone?: string | null
           total: number
           payment_method: 'cash' | 'mpesa' | 'card' | 'insurance'
-          mpesa_transaction_id?: string | null
-          staff_id: string
+          payment_reference?: string | null
           created_at?: string
         }
         Update: {
           id?: string
-          receipt_number?: string
-          subtotal?: number
-          tax?: number
+          sale_number?: string
+          cashier_id?: string
+          customer_name?: string | null
+          customer_phone?: string | null
           total?: number
           payment_method?: 'cash' | 'mpesa' | 'card' | 'insurance'
-          mpesa_transaction_id?: string | null
-          staff_id?: string
+          payment_reference?: string | null
           created_at?: string
         }
       }

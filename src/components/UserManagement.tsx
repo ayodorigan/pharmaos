@@ -33,7 +33,7 @@ export const UserManagement: React.FC = () => {
     try {
       setIsLoading(true);
       const { data, error } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -44,9 +44,9 @@ export const UserManagement: React.FC = () => {
 
       const mappedUsers: UserType[] = (data || []).map(profile => ({
         id: profile.id,
-        email: '', // Email comes from auth.users, we'll fetch it separately if needed
+        email: profile.email || '',
         phone: profile.phone,
-        name: profile.name,
+        name: profile.full_name,
         role: profile.role,
         isActive: profile.is_active,
         createdAt: profile.created_at
@@ -112,9 +112,9 @@ export const UserManagement: React.FC = () => {
       if (editingUser) {
         // Update existing user profile
         const { error: profileError } = await supabase
-          .from('profiles')
+          .from('user_profiles')
           .update({
-            name: formData.name,
+            full_name: formData.name,
             phone: formData.phone,
             role: formData.role,
             is_active: formData.isActive
@@ -156,10 +156,11 @@ export const UserManagement: React.FC = () => {
         if (authData.user) {
           // Create profile
           const { error: profileError } = await supabase
-            .from('profiles')
+            .from('user_profiles')
             .insert({
               id: authData.user.id,
-              name: formData.name,
+              email: formData.email,
+              full_name: formData.name,
               phone: formData.phone,
               role: formData.role,
               is_active: formData.isActive
@@ -196,7 +197,7 @@ export const UserManagement: React.FC = () => {
 
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from('user_profiles')
         .update({ is_active: !user.isActive })
         .eq('id', userId);
 
